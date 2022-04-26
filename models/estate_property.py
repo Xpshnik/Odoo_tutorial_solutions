@@ -1,3 +1,4 @@
+import string
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_is_zero
@@ -5,21 +6,23 @@ from odoo.tools import float_is_zero
 class Property(models.Model):
     _name = 'estate.property'
     _description = 'Some minimal placeholder description'
+    _order = 'id desc'
 
     name = fields.Char(required=True)
     description = fields.Text()
-    property_type_ids = fields.Many2one('estate.property.type', string='Type')
+    property_type_id = fields.Many2one('estate.property.type', string='Type')
     postcode = fields.Char()
     total_area = fields.Float(compute='_compute_total_area')
     date_availability = fields.Date('Available From', copy=False, default=lambda self: fields.Datetime.add(fields.Datetime.today(), months=3))
     expected_price = fields.Float(required=True)
     selling_price = fields.Float(readonly=True, copy=False)
-    salesperson_ids = fields.Many2many('res.users', default=lambda self: self.env.user)
-    buyer_ids = fields.Many2many('res.partner', copy=False)
+    tag_ids = fields.Many2many('estate.property.tags')
+    salesperson_id = fields.Many2one('res.users', default=lambda self: self.env.user)
+    buyer_id = fields.Many2one('res.partner', copy=False, string='Buyer')
     offer_ids = fields.One2many('estate.property.offer', 'property_id')
     best_price = fields.Float(compute='_compute_best_price')
     bedrooms = fields.Integer(default=2)
-    living_area = fields.Integer()
+    living_area = fields.Integer(string='Living Area (sqm)')
     facades = fields.Integer()
     garage = fields.Boolean()
     garden = fields.Boolean()
@@ -34,12 +37,13 @@ class Property(models.Model):
     )
     active = fields.Boolean(default=True)
     state = fields.Selection([('new', 'New'),
-                              ('sold', 'Sold'),
-                              ('cancelled', 'Cancelled'),
                               ('offer_received', 'Offer Received'),
                               ('offer_accepted', 'Offer Accepted'),
+                              ('sold', 'Sold'),
+                              ('cancelled', 'Cancelled'),
                             ],
-                            copy=False, required=True, default='new')
+                            copy=False, required=True, string='Status', store="True",
+                            compute="_compute_offer_received") #default='new' removed, as compute overrides default value
 
     _sql_constraints = [
         ('check_expected_price', 'CHECK(expected_price > 0)', 'The expected price must be positive.'),
@@ -66,6 +70,15 @@ class Property(models.Model):
             except ValueError:
                 record.best_price = 0
 
+    @api.depends('offer_ids', 'state')
+    def _compute_offer_received(self):
+        for record in self:
+            record.state = 'new' if not record.state else record.state
+            if record.offer_ids and record.state == 'new':
+                record.state = 'offer_received'
+            elif not record.offer_ids and record.state == 'offer_received':
+                record.state = 'new'
+
     @api.onchange('garden')
     def onchange_garden(self):
         if self.garden:
@@ -91,7 +104,10 @@ class Property(models.Model):
         return True """
         if self.state == 'sold':
             raise UserError('A sold property cannot be set as cancelled.')
-        self.write({'state': 'cancelled'})
+        self.write({
+            'state': 'cancelled',
+            'active': False
+        })
 
     def action_set_sold(self):
         for record in self:
