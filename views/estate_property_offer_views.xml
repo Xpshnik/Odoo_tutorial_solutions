@@ -1,0 +1,25 @@
+<odoo>
+
+    <record id="estate_property_offers_action" model="ir.actions.act_window">
+        <field name="name">Property Offers</field>
+        <field name="res_model">estate.property.offer</field>
+        <field name="view_mode">tree</field>
+        <field name="domain">[('property_type_id', '=', active_id)]</field>
+    </record>
+
+    <record id="estate_property_offers_view_tree" model="ir.ui.view">
+        <field name="name">estate.property.offers.tree</field>
+        <field name="model">estate.property.offer</field>
+        <field name="arch" type="xml">
+            <tree string="Offers" default_order="property_id" decoration-success="state=='accepted'" decoration-danger="state=='refused'"> <!-- bottom/top/True -->
+                <field name="property_id"/>
+                <field name="price"/>
+                <field name="partner_id"/>
+                <field name="validity"/>
+                <field name="deadline_date"/>
+                <field name="state" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+</odoo>

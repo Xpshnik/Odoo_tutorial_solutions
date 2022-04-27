@@ -2,27 +2,8 @@
     <record id="estate_property_action" model="ir.actions.act_window">
         <field name="name">Property</field>
         <field name="res_model">estate.property</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form,kanban</field>
         <field name="context">{'search_default_available': 1}</field>
-    </record>
-
-    <record id="estate_property_types_action" model="ir.actions.act_window">
-        <field name="name">Property Types</field>
-        <field name="res_model">estate.property.type</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-    <record id="estate_property_tags_action" model="ir.actions.act_window">
-        <field name="name">Property Tags</field>
-        <field name="res_model">estate.property.tags</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-    <record id="estate_property_offers_action" model="ir.actions.act_window">
-        <field name="name">Property Offers</field>
-        <field name="res_model">estate.property.offer</field>
-        <field name="view_mode">tree</field>
-        <field name="domain">[('property_type_id', '=', active_id)]</field>
     </record>
 
     <record id="estate_property_view_search" model="ir.ui.view">
@@ -130,102 +111,39 @@
         </field>
     </record>
 
-
-
-
-
-
-
-
-
-
-    <record id="estate_property_type_view_tree" model="ir.ui.view">
-        <field name="name">estate.property.type.tree</field>
-        <field name="model">estate.property.type</field>
+    <record id="estate_property_view_kanban" model="ir.ui.view">
+        <field name="name">estate.property.kanban</field>
+        <field name="model">estate.property</field>
         <field name="arch" type="xml">
-            <tree>
-                <field name="sequence" widget="handle"/>
-                <field name="name" readonly="1"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="estate_property_type_view_form" model="ir.ui.view">
-        <field name="name">estate.property.type.form</field>
-        <field name="model">estate.property.type</field>
-        <field name="arch" type="xml">
-            <form>
-                <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" name="%(estate_property_offers_action)d"
-                                type="action" icon="fa-briefcase"
-                                attrs="{'invisible': [('offer_count', '=', 0)]}">
-                            <div class="o_stat_info">
-                                <span class="o_stat_value">
-                                    <field name="offer_count"/>
-                                </span>
-                                <span class="o_stat_text" attrs="{'invisible': [('offer_count', '!=', 1)]}">Offer</span>
-                                <span class="o_stat_text" attrs="{'invisible': [('offer_count', '&lt;', 2)]}">Offers</span>
+            <kanban class="o_kanban_mobile o_kanban_small_column" default_group_by="property_type_id" records_draggable="false">
+                <field name="state"/>
+                <field name="expected_price"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click oe_kanban_card d-flex flex-column">
+                            <div class="o_kanban_record_title oe_kanban_details">
+                                <strong><field name="name"/></strong>
                             </div>
-                        </button>
-                    </div>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" class="mb16 o_text_overflow" placeholder="Type in a property type name"/>
-                        </h1>
-                    </div>
-                    <notebook>
-                        <page string="Properties">
-                            <field name="property_ids">
-                                <tree>
-                                    <field name="name"/>
-                                    <field name="expected_price"/>
-                                    <field name="state"/>
-                                </tree>
-                            </field>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="estate_property_tags_view_form" model="ir.ui.view">
-        <field name="name">estate.property.tags.form</field>
-        <field name="model">estate.property.tags</field>
-        <field name="arch" type="xml">
-            <form>
-                <sheet>
-                    <group>
-                        <field name="name" placeholder="Type in a tag name"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="estate_property_tags_view_tree" model="ir.ui.view">
-        <field name="name">estate.property.tags.tree</field>
-        <field name="model">estate.property.tags</field>
-        <field name="arch" type="xml">
-            <tree editable="top">
-                <field name="name"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="estate_property_offers_view_tree" model="ir.ui.view">
-        <field name="name">estate.property.offers.tree</field>
-        <field name="model">estate.property.offer</field>
-        <field name="arch" type="xml">
-            <tree string="Offers" default_order="property_id" decoration-success="state=='accepted'" decoration-danger="state=='refused'"> <!-- bottom/top/True -->
-                <field name="property_id"/>
-                <field name="price"/>
-                <field name="partner_id"/>
-                <field name="validity"/>
-                <field name="deadline_date"/>
-                <field name="state" invisible="1"/>
-            </tree>
+                            <div>
+                                <span t-esc="'Expected Price: ' + record.expected_price.value"/>
+                            </div>
+                            <div>
+                                <t t-if="record.state.raw_value=='offer_received'">
+                                    <span>Best Price: </span><field name="best_price"/>
+                                </t>
+                            </div>
+                            <div>
+                                <t t-if="record.state.raw_value=='offer_accepted'">
+                                    <span>Selling Price: </span><field name="selling_price"/>
+                                </t>
+                            </div>
+                            <div>
+                                <field name="tag_ids" options="{'color_field': 'color'}"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
