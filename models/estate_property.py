@@ -10,13 +10,13 @@ class Property(models.Model):
 
     name = fields.Char(required=True)
     description = fields.Text()
-    property_type_id = fields.Many2one('estate.property.type', string='Type')
+    property_type_id = fields.Many2one('estate.property.type', string='Property Type')
     postcode = fields.Char()
     total_area = fields.Float(compute='_compute_total_area')
     date_availability = fields.Date('Available From', copy=False, default=lambda self: fields.Datetime.add(fields.Datetime.today(), months=3))
     expected_price = fields.Float(required=True)
     selling_price = fields.Float(readonly=True, copy=False)
-    tag_ids = fields.Many2many('estate.property.tags')
+    tag_ids = fields.Many2many('estate.property.tags', string="Tags")
     salesperson_id = fields.Many2one('res.users', default=lambda self: self.env.user)
     buyer_id = fields.Many2one('res.partner', copy=False, string='Buyer')
     offer_ids = fields.One2many('estate.property.offer', 'property_id')
@@ -42,8 +42,8 @@ class Property(models.Model):
                               ('sold', 'Sold'),
                               ('cancelled', 'Cancelled'),
                             ],
-                            copy=False, required=True, string='Status', store="True",
-                            compute="_compute_offer_received") #default='new' removed, as compute overrides default value
+                            copy=False, required=True, string='Status', store="True", default='new',
+                            compute="_compute_offer_received")
 
     _sql_constraints = [
         ('check_expected_price', 'CHECK(expected_price > 0)', 'The expected price must be positive.'),
@@ -70,10 +70,11 @@ class Property(models.Model):
             except ValueError:
                 record.best_price = 0
 
+    #in the tutorial, the suggested solution is to modify create method for offers so that on offer creation property state changes
+    #to 'offer_received', but such solution would leave the 'offer_received' state behind even after all offers are deleted
     @api.depends('offer_ids', 'state')
     def _compute_offer_received(self):
         for record in self:
-            record.state = 'new' if not record.state else record.state
             if record.offer_ids and record.state == 'new':
                 record.state = 'offer_received'
             elif not record.offer_ids and record.state == 'offer_received':
