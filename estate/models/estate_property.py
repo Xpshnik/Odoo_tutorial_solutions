@@ -1,4 +1,3 @@
-import string
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_is_zero
@@ -13,7 +12,7 @@ class Property(models.Model):
     property_type_id = fields.Many2one('estate.property.type', string='Property Type')
     postcode = fields.Char()
     total_area = fields.Float(compute='_compute_total_area')
-    date_availability = fields.Date('Available From', copy=False, default=lambda self: fields.Datetime.add(fields.Datetime.today(), months=3))
+    date_availability = fields.Date('Available From', copy=False, default=lambda self: fields.Date.add(fields.Date.today(), months=3))
     expected_price = fields.Float(required=True)
     selling_price = fields.Float(readonly=True, copy=False)
     tag_ids = fields.Many2many('estate.property.tags', string="Tags")
