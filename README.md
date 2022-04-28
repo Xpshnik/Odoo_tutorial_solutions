@@ -3,6 +3,8 @@
 ## estate:
 The main module responsible for all estate properties management logic.
 
+![image](https://user-images.githubusercontent.com/67806773/165844519-9fe87fc1-7b28-4aca-82e2-a873746dd4c8.png)
+
 ![image](https://user-images.githubusercontent.com/67806773/165842512-3b49a332-a34b-4192-8f94-fcd693def4ff.png)
 
 ![image](https://user-images.githubusercontent.com/67806773/165842565-d5aefcba-07e9-42dc-a681-fb4d1cfa4f5f.png)
